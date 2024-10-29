@@ -21,6 +21,7 @@ def order_robots_from_RobotSpareBin():
     open_robot_order_website()
     orders = get_orders()
     pdf_files_to_zip = []
+
     for order in orders:
         close_annoying_modal()
 
@@ -31,7 +32,7 @@ def order_robots_from_RobotSpareBin():
         pdf_files_to_zip.append(pdfName)
         embed_screenshot_to_receipt(screenshotName, pdfName)
         nextOrder()
-
+    archive_receipts(pdf_files_to_zip, "output/ZippedPDF.zip")
 
 def open_robot_order_website():
     browser.goto("https://robotsparebinindustries.com/#/robot-order")
@@ -51,13 +52,14 @@ def get_orders():
     return data
 
 def close_annoying_modal():
+    """
+    Closes anoying modal
+    """
     page = browser.page()
     page.click("button:text('Yep')")
 
-def loop_through_data():
-    print("")
-
 def fill_the_form(formData):
+    """Fills the data into the form"""
     page = browser.page()
     page.select_option("#head", formData["Head"])
     page.click("#id-body-"+formData["Body"])
@@ -66,6 +68,7 @@ def fill_the_form(formData):
     page.click("#preview")
 
 def orderRobot():
+    """Orders the robot"""
     alert_selector = 'div.alert.alert-danger[role="alert"]'
     page = browser.page()
     page.click("#order")
@@ -85,6 +88,7 @@ def orderRobot():
             break;
 
 def screenshot_robot(order_number):
+    """Takes a screen shot of the robot"""
     page = browser.page()
     element = page.query_selector("#robot-preview-image")
     screenshotPath = f"output/screenshot/{order_number}.png"
@@ -92,6 +96,7 @@ def screenshot_robot(order_number):
     return screenshotPath
 
 def store_receipt_as_pdf(order_number):
+    """Stores the receipt as a pdf"""
     page = browser.page()
     sales_results_html = page.locator("#receipt").inner_html()
     pdf = PDF()
@@ -99,20 +104,21 @@ def store_receipt_as_pdf(order_number):
     return f"output/PDF/{order_number}.pdf"
 
 def embed_screenshot_to_receipt(screenshot, pdf_file):
+    """embed a screenshot to a receipt"""
     pdf = PDF()
     pdf.add_files_to_pdf(files=[pdf_file,screenshot],target_document=pdf_file)
-    # pdf.open_pdf(pdf_file)
-    # pdf.add_image(screenshot) 
 
 def archive_receipts(pdf_files, zip_file_name):
+     """Archives pdfs into a zip file"""
      with zipfile.ZipFile(zip_file_name, 'w') as zipf:
         for pdf_file in pdf_files:
-            if os.path.exists(pdf_file):  # Check if the PDF file exists
-                zipf.write(pdf_file, os.path.basename(pdf_file))  # Add PDF to zip
+            if os.path.exists(pdf_file): 
+                zipf.write(pdf_file, os.path.basename(pdf_file)) 
                 print(f"Added {pdf_file} to {zip_file_name}.")
             else:
                 print(f"File {pdf_file} does not exist and will not be added.")
 
 def nextOrder():
+    """Moves to the next order by going back to the start"""
     page = browser.page()
     page.click("#order-another")
